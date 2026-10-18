@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Разрешение для прямого переключения системного Частного DNS (Settings.Global)
+      без создания VPN-соединения. Выдается один раз через ADB или Shizuku.
+    -->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_qs_dns"
+        android:label="Частный DNS"
+        android:roundIcon="@drawable/ic_qs_dns"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+        <!-- Главный экран приложения (и открывается по долгому нажатию на плитку в шторке) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Позволяет открывать настройки DNS долгим нажатием на иконку в шторке быстрых настроек -->
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+        </activity>
+
+        <!-- Служба переключателя для панели/шторки быстрых настроек (Quick Settings Tile) -->
+        <service
+            android:name=".PrivateDnsTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_qs_dns"
+            android:label="Частный DNS"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+                android:value="true" />
+        </service>
+
+    </application>
+
+</manifest>
