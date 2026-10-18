@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "**" ]
   workflow_dispatch:
 
 jobs:
@@ -12,11 +12,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Unpack project zip if uploaded as archive
+      - name: Prepare and validate project files
         run: |
           if [ -f PrivateDnsToggle_AndroidProject.zip ]; then
             unzip -o PrivateDnsToggle_AndroidProject.zip
           fi
+          python3 - << 'EOF'
+          import os
+          dns_path = "app/src/main/java/com/example/privatednstoggle/DnsRepository.kt"
+          if os.path.exists(dns_path):
+              with open(dns_path, "r", encoding="utf-8") as f:
+                  s = f.read()
+              s = s.replace(r"\-", r"\\-").replace(r"\.", r"\\.").replace(r"\\\-", r"\\-").replace(r"\\\.", r"\\.")
+              with open(dns_path, "w", encoding="utf-8") as f:
+                  f.write(s)
+          manifest_path = "app/src/main/AndroidManifest.xml"
+          if os.path.exists(manifest_path):
+              with open(manifest_path, "r", encoding="utf-8") as f:
+                  m = f.read()
+              m = m.replace("@mipmap/ic_launcher_round", "@drawable/ic_qs_dns").replace("@mipmap/ic_launcher", "@drawable/ic_qs_dns")
+              with open(manifest_path, "w", encoding="utf-8") as f:
+                  f.write(m)
+          EOF
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -30,7 +47,7 @@ jobs:
           gradle-version: '8.7'
 
       - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload Compiled APK
         uses: actions/upload-artifact@v4
